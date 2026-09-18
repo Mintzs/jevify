@@ -2,10 +2,10 @@
 import os,sys,json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
-os.environ.setdefault('CC',str(Path.home()/'.cache/ora-decision-engine/profiling-20260918/tools/zig-cc'))
+os.environ.setdefault('CC',str(Path.home()/'.cache/jevify/profiling-20260918/tools/zig-cc'))
 import torch
-from ora_decision_engine.shared_attention import attention
-from ora_decision_engine.kernels import residual_rmsnorm,rmsnorm
+from jevify.shared_attention import attention
+from jevify.kernels import residual_rmsnorm,rmsnorm
 OUT=ROOT/'outputs/decision-engine/branch-optimization-20260918'
 @torch.inference_mode()
 def bench(fn):

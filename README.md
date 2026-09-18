@@ -1,99 +1,104 @@
 # Jevify
 
-An experimental CUDA/PyTorch engine for parallel classification, yes/no judgments,
-and rubric scoring with a shared context. The default model is
-`Qwen/Qwen2.5-1.5B-Instruct`. The Python package is `ora_decision_engine`; the CLI is `ora-decision`.
-This repository is independent of the Distillation project.
+Use an existing language model for fast classification, yes/no judgments, and rubric scoring. Define the allowed answers in `workflow.json`, send new context with each request, and receive structured JSON with scores for those answers.
 
-## Configure once, supply fresh inputs each time
+Jevify reuses shared context, evaluates independent questions in batches, and constructs JSON directly from model scores. Optional GPU kernels reduce execution overhead. The default model is **Qwen2.5-1.5B-Instruct**; no fine-tuning is required.
 
-Edit **workflow.json** to define question types, answer options, scoring criteria,
-and optional default instructions. Supply context, conversation history, and
-question overrides separately on every request. No engine code changes are needed.
-The supplied default is a four-question refund rubric, not a validated policy.
+## Install
 
-## Run locally
+Requires **Python 3.11+**. NVIDIA CUDA is recommended for speed; CPU execution is also supported.
 
-From this repository's root, using the existing Windows CUDA environment:
-
-```powershell
-$env:HF_HOME = Join-Path (Get-Location) '.cache/decision-engine/huggingface'
-.\.cache\decision-engine\venv\Scripts\python.exe -m ora_decision_engine --interactive --device cuda --local-files-only
+```bash
+git clone https://github.com/Mintzs/jevify.git
+cd jevify
+python -m venv .venv
 ```
 
-This loads and warms up the model once. Paste context, enter `/run` on its own line, then
-supply question prompts or press Enter for the saved defaults. `/quit` exits.
-For application integration, load `Workflow` and `DecisionEngine` once and call
-`workflow.run(engine, prompt=..., context=..., messages=...)` with new inputs.
-See [dynamic requests, conversation history, and routing examples](docs/dynamic-inputs.md).
+Activate the environment:
 
-One-shot requests accept `--context`, `--context-file`, or `--request` alongside
-`--workflow` (default `workflow.json`). `--prompt` overrides a single question;
-request JSON uses `prompts` for multiple named questions. The original combined
-request format remains available through `--input examples/decision_engine/refund.json`.
+- **Windows PowerShell:** `.\.venv\Scripts\Activate.ps1`
+- **Linux / macOS:** `source .venv/bin/activate`
 
-For a fresh checkout, follow [installation and API documentation](docs/decision-engine.md).
-Install the CUDA PyTorch build appropriate to your device, then `pip install -e '.[inference]'`.
-The installed `ora-decision` command is equivalent to `python -m ora_decision_engine`.
+For NVIDIA GPUs, install a compatible [CUDA-enabled PyTorch build](https://pytorch.org/get-started/locally/) first. Then install Jevify:
 
-## Tests and evidence
-
-```powershell
-.cache/decision-engine/venv/Scripts/python.exe -m unittest discover -s tests -p test_decision_engine.py -v
+```bash
+python -m pip install -e ".[inference]"
 ```
 
-Historical benchmark results and captured raw model tensors are preserved locally
-under `outputs/decision-engine/`. Model weights, virtual environments, and downloaded
-wheels live under `.cache/decision-engine/`. Both directories are ignored by Git. The local video workspace under `videos/` is also excluded.
-Historical benchmark integration tests require the local archived data and upstream
-source snapshot; they skip when those artifacts are absent from a fresh checkout.
-Source code, examples, the default workflow, tests, and documentation are trackable.
+The first run downloads the model (roughly 3 GB). Later runs reuse the cached weights.
 
-The default scores A/B/C option IDs for Choice and Score; Noul uses
-`false`/`true`. Single-token answers retain selected-head scoring. With explicit label encoding, multi-token
-labels are evaluated in full with a cached prompt and batched known continuations.
-These are uncalibrated model likelihoods, not measured correctness probabilities.
-Workflow files and answer structures are unchanged. See [literal-label scoring](docs/literal-labels.md).
+## Try it
 
-Earlier comparisons remain in `outputs/decision-engine/`. The neutral-context
-probability adjustment has been removed; its archived reports are historical.
-Older results remain historical evidence. See [implementation and limitations](docs/decision-engine.md).
+From the repository folder:
 
-## Optional inference optimizations
+```bash
+jevify --interactive
+```
 
-The engine now includes bounded CUDA graph replay, reduced prefix-cache copying,
-reused answer-head weights, and optional Triton RMSNorm, SwiGLU and RoPE kernels.
-See [optimization setup and behavior](docs/optimizations.md).
+Once the model is ready, enter a message and finish with `/run` on its own line:
 
-## Automatic branch execution
+```text
+I was charged twice. Please refund the duplicate charge.
+/run
+```
 
-Eligible batches now share one physical context cache, use a short-branch kernel
-where appropriate, and group similar question lengths to reduce padding. Other
-inputs automatically use ordinary attention. Workflow JSON needs no changes.
-CUDA graph captures also reuse a stream to avoid workspace growth across shapes.
-See [automatic dispatch, fallbacks, and measurements](docs/branch-optimizations.md).
+Press Enter at each question prompt to use the saved instructions. Jevify prints JSON, then waits for another request. Type `/quit` to exit.
 
-## Routing prompt correction
+For a single request:
 
-Choice/Score options use JSON-escaped actual labels and descriptions. Interactive
-sessions initialize the model before accepting requests; use `--no-warmup` to
-skip that step. See [input and timing details](docs/dynamic-inputs.md).
+```bash
+jevify --context "I was charged twice. Please refund the duplicate charge."
+```
 
-## Literal-label benchmark
+Use `--device cuda` or `--device cpu` to select a device. `python -m jevify` works as an alternative to the `jevify` command.
 
-The paired comparison with uncorrected letter scoring is saved under
-`outputs/decision-engine/natural-labels-20260918/`. The default is
-`--answer-encoding letters`; `--answer-encoding labels` enables the literal-label
-comparison path. No neutral-context recalculation is available.
+## Configure your workflow
 
-## Clearer input and rubric separation
+Edit **[workflow.json](workflow.json)** to define the questions and allowed answers:
 
-The default `--prompt-format delimited` wraps the input in `<input_text>` markers
-and identifies the question/options as evaluation instructions. Users still supply
-ordinary context and prompts; the engine adds these boundaries automatically.
-Choice and Score keep one-token A/B/C IDs, and Noul keeps false/true. No neutral
-probability correction or model training is used.
+| Type | Purpose |
+|---|---|
+| `choice` | Pick from named options, such as a department or model route. |
+| `noul` | Evaluate a yes/no question and return a probability. |
+| `score` | Score the input against an ordered rubric. |
 
-The controlled prompt comparison is recorded in
-`outputs/decision-engine/prompt-bias-20260918/`. See [prompt behavior and validation](docs/prompt-format.md).
-Use `--prompt-format readable --answer-encoding letters` for the previous template.
+The included workflow demonstrates refund triage. Replace its questions and criteria for your application. Keep the rubric in the file and supply fresh context or conversation history with each request.
+
+To use a different rubric, pass `--workflow path/to/workflow.json`. See [dynamic inputs and routing examples](docs/dynamic-inputs.md) for prompt overrides, request files, and conversation history.
+
+## Use in Python
+
+```python
+from jevify import Workflow
+from jevify.engine import DecisionEngine
+
+engine = DecisionEngine.from_pretrained(device="auto")
+workflow = Workflow.load("workflow.json")
+
+result = workflow.run(
+    engine,
+    context="I was charged twice. Please refund the duplicate charge.",
+)
+print(result["answers"])
+```
+
+Keep the engine loaded between requests to avoid repeated model startup.
+
+## Performance and limits
+
+- Shared-context caching and batched question scoring are built in. Eligible Linux/CUDA configurations can use specialized shared-attention kernels.
+- Additional Triton kernels are opt-in and require Linux/WSL, CUDA, and the tested Qwen2 setup. CUDA graphs are also opt-in; they can help repeated shapes but add capture overhead. See [optimization setup](docs/optimizations.md) and [branch execution](docs/branch-optimizations.md).
+- Scores are **uncalibrated model probabilities**, not guarantees of correctness. Valid JSON can still contain a wrong decision.
+- Qwen2.5-1.5B is the validated checkpoint. Other supported Qwen3/Llama backbones need their own verification. The engine currently uses one device and does not provide multi-GPU serving or quantization.
+
+See the [technical guide](docs/decision-engine.md) for supported limits and the [answer-scoring guide](docs/literal-labels.md) for decoding options.
+
+## Development
+
+```bash
+python -m unittest discover -s tests -p "test*.py" -v
+```
+
+GPU/Triton checks skip when their requirements are unavailable. Historical benchmark checks require local archived data and skip in a fresh checkout. Scripts under `scripts/` include experiments that depend on those local artifacts.
+
+Downloaded weights, environments, raw benchmark outputs, and the video workspace are excluded from Git.

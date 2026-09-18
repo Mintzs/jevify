@@ -22,9 +22,9 @@ os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import torch
 import transformers
-import ora_decision_engine.engine as engine_module
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.__main__ import load_request
+import jevify.engine as engine_module
+from jevify.engine import DecisionEngine
+from jevify.__main__ import load_request
 from torch.profiler import profile, record_function, ProfilerActivity
 from torch.nn.attention import sdpa_kernel, SDPBackend
 

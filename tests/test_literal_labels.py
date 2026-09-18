@@ -2,8 +2,8 @@
 import unittest
 import torch
 from transformers import Qwen2Config, Qwen2ForCausalLM
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.schema import Choice, Noul, Score
+from jevify.engine import DecisionEngine
+from jevify.schema import Choice, Noul, Score
 from test_decision_engine import TinyTokenizer
 
 class LiteralLabelsTests(unittest.TestCase):
@@ -65,7 +65,7 @@ class LiteralLabelsTests(unittest.TestCase):
 
     def test_default_cli_encoding_and_removed_correction(self):
         import argparse, contextlib, io
-        from ora_decision_engine.__main__ import add_model_arguments
+        from jevify.__main__ import add_model_arguments
         parser=argparse.ArgumentParser();add_model_arguments(parser)
         self.assertEqual(parser.parse_args([]).answer_encoding,"letters")
         self.assertEqual(parser.parse_args(["--answer-encoding","letters"]).answer_encoding,"letters")

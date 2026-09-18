@@ -7,8 +7,8 @@ import profile_engine as harness
 import torch
 import transformers.integrations.sdpa_attention as sdpa
 from torch.profiler import profile, ProfilerActivity
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.__main__ import load_request
+from jevify.engine import DecisionEngine
+from jevify.__main__ import load_request
 
 @contextlib.contextmanager
 def routing(expand_kv):

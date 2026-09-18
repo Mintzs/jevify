@@ -5,15 +5,15 @@ ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'outputs/decision-engine/natur
 SOURCE=ROOT/'outputs/decision-engine/comparison-20260918/replica-source'
 sys.path[:0]=[str(ROOT/'src'),str(SOURCE)]
 os.environ.setdefault('HF_HUB_OFFLINE','1');os.environ.setdefault('TRANSFORMERS_OFFLINE','1')
-os.environ.setdefault('CC',str(Path.home()/'.cache/ora-decision-engine/profiling-20260918/tools/zig-cc'))
+os.environ.setdefault('CC',str(Path.home()/'.cache/jevify/profiling-20260918/tools/zig-cc'))
 import torch,transformers
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.__main__ import load_request
-from ora_decision_engine.benchmark import json_baseline
+from jevify.engine import DecisionEngine
+from jevify.__main__ import load_request
+from jevify.benchmark import json_baseline
 from core.schema import StructuredSchema
 import core.engine_torch as hf
 import importlib.util
-spec=importlib.util.spec_from_file_location('ora_decision_engine.engine_before',OUT/'engine_before.py')
+spec=importlib.util.spec_from_file_location('jevify.engine_before',OUT/'engine_before.py')
 old_module=importlib.util.module_from_spec(spec);spec.loader.exec_module(old_module)
 OldDecisionEngine=old_module.DecisionEngine
 
@@ -42,7 +42,7 @@ def own_labels(result):
 def main():
     import argparse
     p=argparse.ArgumentParser();p.add_argument('--repeats',type=int,default=3);a=p.parse_args()
-    model=str(Path.home()/'.cache/ora-decision-engine/profiling-20260918/model')
+    model=str(Path.home()/'.cache/jevify/profiling-20260918/model')
     e=DecisionEngine.from_pretrained(model,device='cuda',local_files_only=True,max_input_tokens=4096,
         cuda_graphs=True,fused_kernels=('rmsnorm','swiglu','rope'))
     plain=DecisionEngine(e.model,e.tokenizer,efficient_cache=False,max_input_tokens=4096)

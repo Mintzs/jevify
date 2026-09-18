@@ -2,8 +2,8 @@
 import unittest
 import torch
 from test_decision_engine import TinyTokenizer
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.schema import Noul, Choice
+from jevify.engine import DecisionEngine
+from jevify.schema import Noul, Choice
 from transformers import Qwen2Config,Qwen2ForCausalLM
 
 
@@ -94,7 +94,7 @@ class GraphTests(unittest.TestCase):
 class KernelTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        try:from ora_decision_engine import kernels
+        try:from jevify import kernels
         except ImportError as exc:raise unittest.SkipTest(str(exc))
         cls.k=kernels
 

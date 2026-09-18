@@ -5,8 +5,8 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"src"))
 import profile_engine as h
 import torch
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.__main__ import load_request
+from jevify.engine import DecisionEngine
+from jevify.__main__ import load_request
 
 def main():
     p=argparse.ArgumentParser()

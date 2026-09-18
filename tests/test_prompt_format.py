@@ -3,9 +3,9 @@ import argparse,json,sys,unittest
 from pathlib import Path
 import torch
 from transformers import Qwen2Config,Qwen2ForCausalLM
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.schema import Choice,Noul,Score
-from ora_decision_engine.__main__ import add_model_arguments
+from jevify.engine import DecisionEngine
+from jevify.schema import Choice,Noul,Score
+from jevify.__main__ import add_model_arguments
 from test_decision_engine import TinyTokenizer
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from prompt_bias_variants import install,select

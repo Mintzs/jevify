@@ -3,14 +3,14 @@ import argparse,sys,json,time,statistics,importlib.util,gc
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
 import torch
-from ora_decision_engine.engine import DecisionEngine
-from ora_decision_engine.__main__ import load_request
+from jevify.engine import DecisionEngine
+from jevify.__main__ import load_request
 import profile_engine as h
 OUT=ROOT/'outputs/decision-engine/optimization-20260918'
-spec=importlib.util.spec_from_file_location('ora_decision_engine._baseline',OUT/'baseline_engine.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+spec=importlib.util.spec_from_file_location('jevify._baseline',OUT/'baseline_engine.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
 def main():
  p=argparse.ArgumentParser();p.add_argument('--stage',required=True);p.add_argument('--repeats',type=int,default=7);a=p.parse_args()
- model='/home/travis/.cache/ora-decision-engine/profiling-20260918/model'
+ model=str(Path.home()/'.cache/jevify/profiling-20260918/model')
  e=DecisionEngine.from_pretrained(model,device='cuda',local_files_only=True)
  b=mod.DecisionEngine(e.model,e.tokenizer)
  stages={'cache':{},'graphs':{'cuda_graphs':True},'rmsnorm':{'fused_kernels':('rmsnorm',)},'swiglu':{'fused_kernels':('swiglu',)},'rope':{'fused_kernels':('rope',)},'fused':{'fused_kernels':('rmsnorm','swiglu','rope')},'combined':{'cuda_graphs':True,'fused_kernels':('rmsnorm','swiglu','rope')}}

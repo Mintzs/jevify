@@ -94,8 +94,8 @@ def main():
     args=p.parse_args(); args.output.mkdir(parents=True,exist_ok=False)
     try:
         if args.model:
-            from ora_decision_engine.engine import DecisionEngine
-            from ora_decision_engine.__main__ import load_request
+            from jevify.engine import DecisionEngine
+            from jevify.__main__ import load_request
             engine=DecisionEngine.from_pretrained(args.model,device="cuda",local_files_only=True)
             data,questions=load_request(ROOT/"examples/decision_engine/refund.json")
             for _ in range(3): engine.decide(data["context"],questions)
