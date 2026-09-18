@@ -1,0 +1,37 @@
+{
+  "context": "The customer says: I was charged twice for the same order. Which department should I contact? I would like a refund for the duplicate charge. The customer has not asked to speak to a human.",
+  "questions": {
+    "department": {
+      "type": "choice",
+      "instructions": "Which department should handle this duplicate-charge issue?",
+      "criteria": {
+        "billing": "Payment issues, duplicate charges, and refunds for incorrect charges",
+        "shipping": "Late, lost, or incorrectly delivered parcels",
+        "returns": "Returning or exchanging physical products"
+      }
+    },
+    "refund_requested": {
+      "type": "noul",
+      "instructions": "Does the customer explicitly request a refund?"
+    },
+    "human_requested": {
+      "type": "noul",
+      "instructions": "Does the customer explicitly ask to speak to a human?"
+    },
+    "severity": {
+      "type": "score",
+      "instructions": "How severe is the reported problem?",
+      "criteria": [
+        "An informational question with no reported loss or malfunction",
+        "An incorrect charge affecting one customer, requiring correction",
+        "A service-wide outage preventing all customers from using the product"
+      ]
+    }
+  },
+  "expected_labels": {
+    "department": "billing",
+    "refund_requested": "yes",
+    "human_requested": "no",
+    "severity": "1"
+  }
+}

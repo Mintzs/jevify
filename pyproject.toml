@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ora-decision-engine"
+version = "0.1.0"
+description = "Experimental parallel inference for typed decisions with a shared context"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+inference = ["torch>=2.6,<3.0", "transformers>=4.51,<6.0"]
+fusion = ["torch==2.6.0", "transformers==5.5.4", "triton==3.2.0; sys_platform == 'linux'"]
+
+[project.scripts]
+ora-decision = "ora_decision_engine.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

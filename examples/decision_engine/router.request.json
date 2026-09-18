@@ -1,0 +1,18 @@
+{
+  "prompt": "Which model should handle the next response in this conversation?",
+  "context": "Choose the least expensive suitable model. Available model capabilities are described in the rubric.",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Can you help fix my Python function?"
+    },
+    {
+      "role": "assistant",
+      "content": "Please show the function and the error."
+    },
+    {
+      "role": "user",
+      "content": "def total(items): return sum(item.price for item in items)\nIt fails when some items are dictionaries. Please fix it."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.cache/
+.venv/
+outputs/
+build/
+dist/
+.env
+
+# Local development and media artifacts
+.pytest_cache/
+node_modules/
+videos/
+.env.*
+!.env.example
+*.safetensors
+*.gguf

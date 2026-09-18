@@ -1,0 +1,12 @@
+{
+  "questions": {
+    "model": {
+      "type": "choice",
+      "criteria": {
+        "fast": "Short, straightforward requests that a small fast model can answer",
+        "reasoning": "Difficult reasoning, mathematical proofs, or complex multi-step planning",
+        "coding": "Writing, debugging, or reviewing program code"
+      }
+    }
+  }
+}
