@@ -1,6 +1,10 @@
 <h1 align="center">Jevify</h1>
 
-Inspired by [Harsha Gundala's Qwen-2.5-1B-RLCD project](https://huggingface.co/harshatheg/Qwen-2.5-1B-RLCD) and its parallel constrained decoding approach.
+<p align="center">
+  <a href="https://huggingface.co/harshatheg/Qwen-2.5-1B-RLCD">
+    <img src="https://img.shields.io/badge/Inspired%20by-harshatheg%2FQwen--2.5--1B--RLCD-FFD21E?logo=huggingface&amp;logoColor=000&amp;style=flat-square" alt="Inspired by Harsha Gundala's Qwen-2.5-1B-RLCD on Hugging Face">
+  </a>
+</p>
 
 **26.1× faster than standard Qwen JSON generation, 2.4× faster than the HF implementation, and 100% JSON schema validity** in our [local 250-case development benchmark](#local-benchmark). Speedups compare median request latency on the same laptop and checkpoint; they are not universal performance guarantees.
 
