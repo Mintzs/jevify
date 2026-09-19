@@ -12,6 +12,14 @@ Jevify runs classification, yes/no judgments, and rubric scoring with an existin
 
 > **Experimental project:** Jevify is not affiliated with TypeSafe AI and is not intended to replace or compete with Jev. It explores a different approach: optimizing inference around an existing pretrained LLM. TypeSafe describes Jev as a purpose-built model with a new architecture and Reinforcement Learning for Calibrated Decisions (RLCD). Jevify does not reproduce that architecture or training method, and its probabilities are uncalibrated. See [TypeSafe's announcement](https://typesafe.ai/blog/introducing-system-one-models-and-jev).
 
+## Watch the comparison
+
+[![Watch the side-by-side JSON response comparison](docs/media/jevify-comparison.png)](https://github.com/Mintzs/jevify/raw/refs/heads/main/docs/media/jevify-comparison.mp4)
+
+**[Watch or download the video](https://github.com/Mintzs/jevify/raw/refs/heads/main/docs/media/jevify-comparison.mp4)** · 11 seconds · Real-time replay of recorded outputs.
+
+One successful routing example, using each method's median of five warmed runs. These timings are separate from the 250-case benchmark below. [Recording details](docs/media/README.md).
+
 ## How the optimizations work
 
 | Optimization | In plain language |
