@@ -83,6 +83,20 @@ The default is **`Qwen/Qwen2.5-1.5B-Instruct`**, the existing instruction-tuned 
 Set `HF_HOME` to choose the cache folder. Once the files are downloaded, `--local-files-only` requires cached files instead of downloading them again. Internet access and any required model permissions are needed for the first download.
 
 
+## Configure your workflow
+
+Edit **[workflow.json](workflow.json)** to define the questions and allowed answers:
+
+| Type | Purpose |
+|---|---|
+| `choice` | Pick from named options, such as a department or model route. |
+| `noul` | Evaluate a yes/no question and return a probability. |
+| `score` | Score the input against an ordered rubric. |
+
+The included workflow demonstrates refund triage. Replace its questions and criteria for your application. Keep the rubric in the file and supply fresh context or conversation history with each request.
+
+To use a different rubric, pass `--workflow path/to/workflow.json`. See [dynamic inputs and routing examples](docs/dynamic-inputs.md) for prompt overrides, request files, and conversation history.
+
 ## Try it
 
 From the repository folder:
@@ -136,20 +150,6 @@ In Python, pass the same ID or folder to `DecisionEngine.from_pretrained("organi
 The model and its working memory must fit on one CPU or CUDA device. Start with the default execution settings, then test the decisions and speed on your own workflow before enabling model-specific optimizations. The default answer encoding requires distinct single-token A–Z IDs; `--answer-encoding labels` offers full-label scoring for other tokenizers, potentially at higher latency. The model still needs a compatible chat template and architecture.
 
 Changing `workflow.json` changes the task and allowed answers; it cannot add support for a new model architecture. Unsupported families require code adapters for the model, attention/cache handling, and output scoring, plus correctness tests. A fine-tuned or merged checkpoint can work if it retains a supported architecture. See [technical compatibility and limits](docs/decision-engine.md).
-
-## Configure your workflow
-
-Edit **[workflow.json](workflow.json)** to define the questions and allowed answers:
-
-| Type | Purpose |
-|---|---|
-| `choice` | Pick from named options, such as a department or model route. |
-| `noul` | Evaluate a yes/no question and return a probability. |
-| `score` | Score the input against an ordered rubric. |
-
-The included workflow demonstrates refund triage. Replace its questions and criteria for your application. Keep the rubric in the file and supply fresh context or conversation history with each request.
-
-To use a different rubric, pass `--workflow path/to/workflow.json`. See [dynamic inputs and routing examples](docs/dynamic-inputs.md) for prompt overrides, request files, and conversation history.
 
 ## Use in Python
 
