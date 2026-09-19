@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/media/jevify-banner.png" alt="Jevify: faster decision engines with structured JSON. Results from the local 250-case benchmark below."></p>
+
 <h1 align="center">Jevify</h1>
 
 <p align="center">
@@ -14,9 +16,9 @@ Jevify runs classification, yes/no judgments, and rubric scoring with an existin
 
 ## Watch the comparison
 
-[![Watch the side-by-side JSON response comparison](docs/media/jevify-comparison.png)](https://github.com/Mintzs/jevify/raw/refs/heads/main/docs/media/jevify-comparison.mp4)
+https://github.com/user-attachments/assets/b0e2cb3a-af80-4188-881d-69500620154f
 
-**[Watch or download the video](https://github.com/Mintzs/jevify/raw/refs/heads/main/docs/media/jevify-comparison.mp4)** · 11 seconds · Real-time replay of recorded outputs.
+**[Download the video](https://github.com/Mintzs/jevify/raw/refs/heads/main/docs/media/jevify-comparison.mp4)** · 11 seconds · Real-time replay of recorded outputs.
 
 One successful routing example, using each method's median of five warmed runs. These timings are separate from the 250-case benchmark below. [Recording details](docs/media/README.md).
 
