@@ -1,8 +1,43 @@
-# Jevify
+<h1 align="center">Jevify</h1>
 
-Use an existing language model for fast classification, yes/no judgments, and rubric scoring. Define the allowed answers in `workflow.json`, send new context with each request, and receive structured JSON with scores for those answers.
+Inspired by [Harsha Gundala's Qwen-2.5-1B-RLCD project](https://huggingface.co/harshatheg/Qwen-2.5-1B-RLCD) and its parallel constrained decoding approach.
 
-Jevify reuses shared context, evaluates independent questions in batches, and constructs JSON directly from model scores. Optional GPU kernels reduce execution overhead. The default model is **Qwen2.5-1.5B-Instruct**; no fine-tuning is required.
+**26.1× faster than standard Qwen JSON generation, 2.4× faster than the HF implementation, and 100% JSON schema validity** in our [local 250-case development benchmark](#local-benchmark). Speedups compare median request latency on the same laptop and checkpoint; they are not universal performance guarantees.
+
+Jevify runs classification, yes/no judgments, and rubric scoring with an existing LLM. It reuses shared context, evaluates independent questions in batches, and constructs JSON directly from model scores. Optional GPU kernels reduce execution overhead. The default model is **Qwen2.5-1.5B-Instruct**; no fine-tuning is required.
+
+> **Experimental project:** Jevify is not affiliated with TypeSafe AI and is not intended to replace or compete with Jev. It explores a different approach: optimizing inference around an existing pretrained LLM. TypeSafe describes Jev as a purpose-built model with a new architecture and Reinforcement Learning for Calibrated Decisions (RLCD). Jevify does not reproduce that architecture or training method, and its probabilities are uncalibrated. See [TypeSafe's announcement](https://typesafe.ai/blog/introducing-system-one-models-and-jev).
+
+## How the optimizations work
+
+| Optimization | In plain language |
+|---|---|
+| **Reuse shared context** | Process the common input once and reuse its KV cache across question branches, instead of rereading it for every question. |
+| **Score questions in parallel batches** | Evaluate independent fields together. Large sets are split into batches to control memory use. |
+| **Score only the allowed answers** | For single-token answers, compute scores for the needed options instead of the whole vocabulary, then assemble JSON in code. This avoids generating JSON token by token. |
+| **Use efficient GPU operations** | PyTorch's optimized attention and optional custom Triton kernels reduce intermediate memory transfers by combining neighboring calculations. |
+| **Avoid wasted work between branches** | Eligible batches share one physical context cache, use attention specialized for short question branches, and group similar lengths to reduce padding. |
+
+CUDA graphs are an additional option for repeatedly running the same input shapes. They are **off by default** because capture overhead made them slower in this benchmark. The base model's weights are unchanged; the changes are in prompting, scoring, and execution.
+
+The 250-case test below uses one decision per request, so its gains do not demonstrate the multi-question caching or parallel scaling benefits. [Optimization details and setup](docs/optimizations.md).
+
+## Local benchmark
+
+250 single-decision cases, using the same **Qwen2.5-1.5B-Instruct** checkpoint in FP16 on an **RTX 3050 Laptop GPU (4 GB)** under WSL/Linux. Latency excludes model loading.
+
+| Configuration | Correct + schema-valid | JSON schema validity | Median latency |
+|---|---:|---:|---:|
+| Standard Qwen, unconstrained JSON generation | 9.2% | 14% | 4,359 ms |
+| Qwen-2.5-1B-RLCD, PyTorch/CUDA implementation | 74.8% | 100% | 408 ms |
+| Jevify, CUDA graphs enabled | 90.0% | 100% | 951 ms |
+| **Jevify, CUDA graphs disabled** | **90.0%** | **100%** | **167 ms** |
+
+- **Correct + schema-valid** requires both the right choice and valid complete JSON, including probabilities for every option. The standard model's 9.2% is not its standalone classification accuracy; formatting failures count too.
+- These are **development-set results**: some cases were used during prompt tuning. One timed request per case, with methods measured in separate blocks. The 100% schema result applies to these tested cases; valid structure does not guarantee correct decisions.
+- All cases contain one decision, so this test does not measure multi-field parallel scaling. These are our local CUDA measurements, not the HF project's published Apple Silicon results. Jev was not benchmarked.
+
+The 167 ms configuration used optional RMSNorm, SwiGLU, and RoPE kernels; CUDA graphs were off. See [benchmark methodology](docs/benchmarks.md) for dataset details, exact settings, and limitations, and [optimization setup](docs/optimizations.md) to enable the optional kernels.
 
 ## Install
 
@@ -25,7 +60,14 @@ For NVIDIA GPUs, install a compatible [CUDA-enabled PyTorch build](https://pytor
 python -m pip install -e ".[inference]"
 ```
 
-The first run downloads the model (roughly 3 GB). Later runs reuse the cached weights.
+## Base model and downloads
+
+The default is **`Qwen/Qwen2.5-1.5B-Instruct`**, the existing instruction-tuned Qwen model used in our benchmarks. Jevify adds an inference engine around it; it does not ship newly trained model weights. In the benchmark, "standard Qwen" means this same checkpoint generating JSON normally.
+
+**The Qwen model is not uploaded to this GitHub repository.** On first use, Transformers downloads its weights and tokenizer from Hugging Face (roughly 3 GB) and saves them in the local Hugging Face cache. Later runs reuse that download. Inference runs on your machine, without a hosted model endpoint.
+
+Set `HF_HOME` to choose the cache folder. Once the files are downloaded, `--local-files-only` requires cached files instead of downloading them again. Internet access and any required model permissions are needed for the first download.
+
 
 ## Try it
 
@@ -51,6 +93,35 @@ jevify --context "I was charged twice. Please refund the duplicate charge."
 ```
 
 Use `--device cuda` or `--device cpu` to select a device. `python -m jevify` works as an alternative to the `jevify` command.
+
+## Using another model
+
+Jevify supports specific model architectures, **not every LLM or model size**.
+
+| Model or setup | Current support |
+|---|---|
+| Qwen2.5-1.5B-Instruct | Validated checkpoint and source of the published local results. |
+| Other dense Qwen2, Qwen3, and Llama-style checkpoints | Accepted by the ordinary engine when architecture, tokenizer, and output head are compatible. Each checkpoint needs its own accuracy and latency checks. |
+| Custom fused kernels and shared-attention kernels | Restricted to the tested dense Qwen2 Linux/CUDA setup and compatible versions/shapes. Ordinary-engine compatibility does not imply custom-kernel compatibility. |
+| Other architectures, mixture-of-experts models, GGUF/Ollama endpoints, quantized wrappers, or multi-GPU/offloaded models | Not supported by the current engine. |
+
+For a compatible checkpoint, replace `organization/model-name` with its Hugging Face model ID:
+
+```bash
+jevify --model organization/model-name --interactive
+```
+
+Or load a local Transformers model folder:
+
+```bash
+jevify --model ./my-model --local-files-only --interactive
+```
+
+In Python, pass the same ID or folder to `DecisionEngine.from_pretrained("organization/model-name", device="auto")`.
+
+The model and its working memory must fit on one CPU or CUDA device. Start with the default execution settings, then test the decisions and speed on your own workflow before enabling model-specific optimizations. The default answer encoding requires distinct single-token A–Z IDs; `--answer-encoding labels` offers full-label scoring for other tokenizers, potentially at higher latency. The model still needs a compatible chat template and architecture.
+
+Changing `workflow.json` changes the task and allowed answers; it cannot add support for a new model architecture. Unsupported families require code adapters for the model, attention/cache handling, and output scoring, plus correctness tests. A fine-tuned or merged checkpoint can work if it retains a supported architecture. See [technical compatibility and limits](docs/decision-engine.md).
 
 ## Configure your workflow
 
